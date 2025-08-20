@@ -46,7 +46,7 @@ export default function Landing() {
         email: data.email,
         password: data.password,
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
@@ -72,7 +72,7 @@ export default function Landing() {
         password: data.password,
         name: data.name || data.email.split("@")[0],
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
