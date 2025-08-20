@@ -11,13 +11,6 @@ export function getMongoConnectionString(): string {
     return envUrl;
   }
   
-  // For Replit environment, construct URL
-  if (process.env.REPL_ID) {
-    // Replit internal MongoDB service (if available)
-    const replitUrl = `mongodb://mongodb:27017/community-hub-${process.env.REPL_ID}`;
-    return replitUrl;
-  }
-  
   return atlasUrl;
 }
 
