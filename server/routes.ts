@@ -71,6 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         scriptSrc: isDevelopment
+
           ? [
               "'self'",
               "'unsafe-inline'",
@@ -90,6 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               "http://localhost:*",
               "http://127.0.0.1:*"
             ]
+
           : ["'self'"],
       },
     },
