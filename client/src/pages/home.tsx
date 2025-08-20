@@ -7,10 +7,10 @@ import { SmartDashboard } from "@/components/futuristic/smart-dashboard";
 import { QuantumPortal } from "@/components/futuristic/quantum-portal";
 
 export default function Home() {
-  const { user, clearAuth } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
-    clearAuth();
+    logout();
   };
 
   return (
