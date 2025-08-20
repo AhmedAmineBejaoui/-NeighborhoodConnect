@@ -25,7 +25,9 @@ import { AuthService } from './services/auth.service';
 import { RBACService } from './services/rbac';
 import { SpamService } from './services/spam';
 import { NotificationService } from './services/notifications';
-import { UploadService } from './services/uploads';
+import multer from 'multer';
+import { uploadBuffer, urlFor } from './storage';
+import { storage } from './mongoStorage';
 
 // Middleware
 import { authMiddleware, optionalAuth, AuthRequest } from './middlewares/auth';
@@ -80,6 +82,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.use(cookieParser());
   app.use(generalRateLimit);
+
+  const upload = multer({ storage: multer.memoryStorage() });
 
   // Health check
   app.get('/api/health', (req, res) => {
@@ -486,24 +490,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload routes
-  app.post('/api/uploads/sign', authMiddleware, async (req: AuthRequest, res, next) => {
+  app.post('/uploads', upload.single('file'), async (req: AuthRequest, res, next) => {
     try {
-      const { contentType, filename } = req.body;
+      const file = req.file;
+      const prefix = (req.body?.prefix || 'uploads').replace(/[^a-zA-Z0-9/_-]/g, '');
+      if (!file) return res.status(400).json({ error: 'file manquant' });
 
-      if (!UploadService.validateFileType(contentType)) {
-        return res.status(400).json({ error: 'Invalid file type' });
-      }
+      const now = new Date();
+      const yyyy = now.getUTCFullYear();
+      const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
+      const safeName = file.originalname.replace(/\s+/g, '_');
+      const key = `${prefix}/${yyyy}/${mm}/${Date.now()}-${safeName}`;
 
-      const { url, key } = await UploadService.generatePresignedUrl(
-        filename,
-        contentType,
-        req.user!.id
-      );
+      await uploadBuffer(key, file.buffer, file.mimetype);
+      const publicOrSignedUrl = await urlFor(key);
 
-      res.json({ url, key, publicUrl: UploadService.getPublicUrl(key) });
-    } catch (error) {
-      next(error);
+      res.json({ path: key, url: publicOrSignedUrl, contentType: file.mimetype, size: file.size });
+    } catch (err) {
+      next(err);
     }
   });
 

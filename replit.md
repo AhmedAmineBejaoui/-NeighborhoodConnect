@@ -79,8 +79,8 @@ WebSocket integration for live user experience:
 - **Connection Management**: Automatic reconnection handling and error logging
 
 ### Cloud Storage
-- **S3-Compatible Storage**: File upload handling with pre-signed URLs for security
-- **Configuration**: Environment-based configuration for different storage providers
+- **Supabase Storage**: File upload handling via API with public or signed URLs
+- **Configuration**: Supabase bucket and service role handled server-side
 - **File Validation**: Type and size restrictions for uploaded content
 
 ### Authentication Services
