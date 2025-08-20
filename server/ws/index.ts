@@ -16,9 +16,15 @@ export class WebSocketService {
   private static communityRooms = new Map<string, Set<string>>();
 
   static initialize(server: Server) {
-    this.wss = new WebSocketServer({ 
-      server,
-      path: '/ws'
+    this.wss = new WebSocketServer({ noServer: true });
+
+    server.on('upgrade', (req, socket, head) => {
+      const { pathname } = new URL(req.url || '', `http://${req.headers.host}`);
+      if (pathname === '/ws') {
+        this.wss.handleUpgrade(req, socket, head, (ws) => {
+          this.wss.emit('connection', ws, req);
+        });
+      }
     });
 
     this.wss.on('connection', this.handleConnection.bind(this));
@@ -74,24 +80,25 @@ export class WebSocketService {
       });
 
     } catch (error) {
-      logger.error('WebSocket authentication error:', error);
+      logger.error(error as Error, 'WebSocket authentication error');
       ws.close(1008, 'Authentication failed');
     }
   }
 
   private static handleDisconnection(ws: AuthenticatedWebSocket) {
     if (ws.userId) {
-      this.clients.delete(ws.userId);
-      
+      const userId = ws.userId;
+      this.clients.delete(userId);
+
       // Leave all rooms
-      for (const [roomId, users] of this.communityRooms.entries()) {
-        users.delete(ws.userId);
+      this.communityRooms.forEach((users, roomId) => {
+        users.delete(userId);
         if (users.size === 0) {
           this.communityRooms.delete(roomId);
         }
-      }
+      });
 
-      logger.info(`WebSocket client disconnected: ${ws.userId}`);
+      logger.info(`WebSocket client disconnected: ${userId}`);
     }
   }
 
@@ -109,7 +116,7 @@ export class WebSocketService {
           logger.warn('Unknown WebSocket message type:', message.type);
       }
     } catch (error) {
-      logger.error('WebSocket message error:', error);
+      logger.error(error as Error, 'WebSocket message error');
     }
   }
 
@@ -131,11 +138,11 @@ export class WebSocketService {
     const users = this.communityRooms.get(roomId);
     if (!users) return;
 
-    for (const userId of users) {
+    users.forEach((userId) => {
       if (userId !== excludeUserId) {
         this.sendToUser(userId, message);
       }
-    }
+    });
   }
 
   static sendToCommunity(communityId: string, message: any, excludeUserId?: string) {
@@ -173,12 +180,12 @@ export class WebSocketService {
 
   static emitReportOpened(report: any) {
     // Send to all moderators and admins
-    for (const [userId, client] of this.clients.entries()) {
+    this.clients.forEach((_client, userId) => {
       // This would need to check user roles
       this.sendToUser(userId, {
         type: 'report.opened',
         payload: report
       });
-    }
+    });
   }
 }
