@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub Communautaire - Quartier Saint-Antoine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E3F2FD',
+                            100: '#BBDEFB',
+                            500: '#1976D2',
+                            600: '#1565C0',
+                            700: '#0D47A1'
+                        },
+                        secondary: {
+                            50: '#E8F5E8',
+                            500: '#388E3C',
+                            600: '#2E7D32'
+                        },
+                        accent: {
+                            500: '#F57C00',
+                            600: '#EF6C00'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            },
+            darkMode: 'class'
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+    <!-- @COMPONENT: NavigationSidebar [isCollapsed: boolean] -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out" id="sidebar">
+        <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-home text-white text-sm"></i>
+                </div>
+                <span class="text-lg font-semibold">Hub Communautaire</span>
+            </div>
+            <button class="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" onclick="toggleSidebar()">
+                <i class="fas fa-times text-gray-600 dark:text-gray-400"></i>
+            </button>
+        </div>
+
+        <nav class="mt-6">
+            <div class="px-6 mb-6">
+                <div class="flex items-center space-x-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                    <div class="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
+                        <span class="text-white font-medium text-sm" data-bind="user.initials">SA</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium" data-bind="community.name">Quartier Saint-Antoine</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400" data-bind="user.role">Résident</p>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="space-y-1 px-3">
+                <li>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-primary-500 text-white">
+                        <i class="fas fa-stream w-5"></i>
+                        <span>Fil d'actualité</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-bullhorn w-5"></i>
+                        <span>Annonces</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-store w-5"></i>
+                        <span>Marketplace</span>
+                        <span class="ml-auto bg-accent-500 text-white text-xs px-2 py-0.5 rounded-full">12</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-poll w-5"></i>
+                        <span>Sondages</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-handshake w-5"></i>
+                        <span>Services</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-8 px-3">
+                <p class="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Modération</p>
+                <ul class="space-y-1">
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                            <i class="fas fa-flag w-5"></i>
+                            <span>Signalements</span>
+                            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" data-bind="reports.unresolved.count">3</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                            <i class="fas fa-eye-slash w-5"></i>
+                            <span>Contenu masqué</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="absolute bottom-4 left-3 right-3">
+            <div class="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+                        <span class="text-white font-medium text-xs" data-bind="user.initials">ML</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium" data-bind="user.name">Marie Leclerc</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">En ligne</p>
+                    </div>
+                </div>
+                <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" data-event="click:logout">
+                    <i class="fas fa-sign-out-alt text-gray-600 dark:text-gray-400 text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: NavigationSidebar -->
+
+    <!-- @COMPONENT: MobileHeader [showMenuButton: boolean, notificationCount: number] -->
+    <header class="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16">
+        <div class="flex items-center justify-between px-4 h-full">
+            <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" onclick="toggleSidebar()">
+                <i class="fas fa-bars text-gray-600 dark:text-gray-400"></i>
+            </button>
+            <h1 class="text-lg font-semibold">Hub Communautaire</h1>
+            <div class="flex items-center space-x-2">
+                <!-- @COMPONENT: NotificationsBell [count: number] -->
+                <button class="relative p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:toggleNotifications">
+                    <i class="fas fa-bell text-gray-600 dark:text-gray-400"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full" data-bind="notifications.unread.count">5</span>
+                </button>
+                <!-- @END_COMPONENT: NotificationsBell -->
+                <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:toggleTheme">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: MobileHeader -->
+
+    <!-- Main Content -->
+    <div class="lg:ml-64">
+        <!-- @COMPONENT: TopBar [community: Community, user: User] -->
+        <header class="hidden lg:flex items-center justify-between p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <h1 class="text-2xl font-bold" data-bind="community.name">Quartier Saint-Antoine</h1>
+                <p class="text-gray-600 dark:text-gray-400" data-bind="community.address">123 Rue de la République, Lyon</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="relative p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:toggleNotifications">
+                    <i class="fas fa-bell text-gray-600 dark:text-gray-400"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full" data-bind="notifications.unread.count">5</span>
+                </button>
+                <button class="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:toggleTheme">
+                    <i class="fas fa-moon text-gray-600 dark:text-gray-400"></i>
+                </button>
+                <div class="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
+                <button class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors" data-event="click:openComposer">
+                    <i class="fas fa-plus mr-2"></i>Nouveau post
+                </button>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: TopBar -->
+
+        <main class="p-4 lg:p-6 pt-20 lg:pt-6">
+            <!-- @COMPONENT: FilterBar [activeFilter: string, searchQuery: string] -->
+            <div class="mb-6">
+                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div class="flex flex-wrap gap-2">
+                        <button class="px-4 py-2 bg-primary-500 text-white rounded-full text-sm font-medium">
+                            Tous
+                        </button>
+                        <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                            Annonces
+                        </button>
+                        <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                            Services
+                        </button>
+                        <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                            Marketplace
+                        </button>
+                        <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                            Sondages
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="text" placeholder="Rechercher..." 
+                               class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                               data-bind="searchQuery">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: FilterBar -->
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-2 space-y-6">
+                    <!-- @COMPONENT: PostCard [post: Post, showActions: boolean] -->
+                    <article class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-medium text-sm" data-bind="post.author.initials">JD</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium" data-bind="post.author.name">Jean Dupont</p>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <span data-bind="post.createdAt">Il y a 2 heures</span>
+                                        <span>•</span>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                            <i class="fas fa-bullhorn mr-1"></i>Annonce
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:reportPost">
+                                    <i class="fas fa-flag text-gray-400 text-sm"></i>
+                                </button>
+                                <button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fas fa-ellipsis-h text-gray-400 text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h2 class="text-xl font-semibold mb-3" data-bind="post.title">Travaux d'ascenseur - Bâtiment A</h2>
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed" data-bind="post.body">
+                                Chers résidents, nous vous informons que des travaux de maintenance de l'ascenseur du bâtiment A auront lieu du 15 au 20 janvier. L'ascenseur sera temporairement hors service. Nous nous excusons pour la gêne occasionnée.
+                            </p>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <!-- @MAP: post.tags.map(tag => ( -->
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300" data-bind="tag">
+                                    #travaux
+                                </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300" data-bind="tag">
+                                    #ascenseur
+                                </span>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center space-x-6">
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors" data-event="click:likePost">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span data-bind="post.likes.count">12</span>
+                                </button>
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors" data-event="click:toggleComments">
+                                    <i class="fas fa-comment"></i>
+                                    <span data-bind="post.comments.count">5 commentaires</span>
+                                </button>
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i class="fas fa-share"></i>
+                                    <span>Partager</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- @END_COMPONENT: PostCard -->
+
+                    <!-- @COMPONENT: PostCard [post: MarketplacePost] -->
+                    <article class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-secondary-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-medium text-sm" data-bind="post.author.initials">AM</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium" data-bind="post.author.name">Annie Martin</p>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <span data-bind="post.createdAt">Il y a 4 heures</span>
+                                        <span>•</span>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                            <i class="fas fa-store mr-1"></i>À vendre
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-primary-500" data-bind="post.meta.price">45€</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h2 class="text-xl font-semibold mb-3" data-bind="post.title">Table basse en bois massif</h2>
+                            <!-- Marketplace item image -->
+                            <!-- A wooden coffee table in a modern living room setting -->
+                            <img src="https://images.unsplash.com/photo-1549497538-303791108f95?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" 
+                                 alt="Table basse en bois massif" 
+                                 class="w-full h-48 object-cover rounded-lg mb-3" 
+                                 data-mock-image="true">
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed" data-bind="post.body">
+                                Belle table basse en chêne massif, dimensions 120x60x40cm. En excellent état, quelques rayures d'usage mais rien de grave. Parfaite pour salon moderne ou rustique. À récupérer sur place.
+                            </p>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    #mobilier
+                                </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    #bois-massif
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center space-x-6">
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i class="fas fa-heart"></i>
+                                    <span data-bind="post.likes.count">8</span>
+                                </button>
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i class="fas fa-comment"></i>
+                                    <span data-bind="post.comments.count">3 commentaires</span>
+                                </button>
+                            </div>
+                            <button class="px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors" data-event="click:contactSeller">
+                                <i class="fas fa-envelope mr-2"></i>Contacter
+                            </button>
+                        </div>
+                    </article>
+                    <!-- @END_COMPONENT: PostCard -->
+
+                    <!-- @COMPONENT: PollWidget [poll: Poll, hasVoted: boolean] -->
+                    <article class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-medium text-sm" data-bind="post.author.initials">CS</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium" data-bind="post.author.name">Conseil Syndical</p>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <span data-bind="post.createdAt">Il y a 1 jour</span>
+                                        <span>•</span>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                            <i class="fas fa-poll mr-1"></i>Sondage
+                                        </span>
+                                        <span class="text-xs text-accent-600 font-medium">Se termine dans 5 jours</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h2 class="text-xl font-semibold mb-3" data-bind="post.title">Choix de la couleur pour la réfection de la cage d'escalier</h2>
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4" data-bind="post.body">
+                                Nous devons choisir une nouvelle couleur pour repeindre la cage d'escalier principale. Voici les options proposées par l'entreprise :
+                            </p>
+
+                            <div class="space-y-3">
+                                <!-- @MAP: poll.options.map((option, index) => ( -->
+                                <div class="poll-option cursor-pointer p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 transition-colors" 
+                                     data-event="click:voteOption" data-option-index="0">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-6 h-6 rounded-full border-2 border-primary-400 flex items-center justify-center">
+                                                <div class="w-3 h-3 bg-primary-500 rounded-full opacity-0 transition-opacity" data-voted="true"></div>
+                                            </div>
+                                            <span class="font-medium" data-bind="option.text">Blanc cassé moderne</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm font-medium" data-bind="option.percentage">45%</span>
+                                            <p class="text-xs text-gray-500" data-bind="option.votes">23 votes</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div class="bg-primary-500 h-2 rounded-full transition-all duration-300" style="width: 45%" data-bind="option.percentage"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="poll-option cursor-pointer p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 transition-colors" 
+                                     data-event="click:voteOption" data-option-index="1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                                <div class="w-3 h-3 bg-primary-500 rounded-full opacity-0 transition-opacity"></div>
+                                            </div>
+                                            <span class="font-medium" data-bind="option.text">Beige chaleureux</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm font-medium" data-bind="option.percentage">32%</span>
+                                            <p class="text-xs text-gray-500" data-bind="option.votes">16 votes</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div class="bg-secondary-500 h-2 rounded-full transition-all duration-300" style="width: 32%" data-bind="option.percentage"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="poll-option cursor-pointer p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-500 transition-colors" 
+                                     data-event="click:voteOption" data-option-index="2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                                <div class="w-3 h-3 bg-primary-500 rounded-full opacity-0 transition-opacity"></div>
+                                            </div>
+                                            <span class="font-medium" data-bind="option.text">Gris perle</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm font-medium" data-bind="option.percentage">23%</span>
+                                            <p class="text-xs text-gray-500" data-bind="option.votes">12 votes</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div class="bg-accent-500 h-2 rounded-full transition-all duration-300" style="width: 23%" data-bind="option.percentage"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+
+                            <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-600 dark:text-gray-400">Total des votants</span>
+                                    <span class="font-medium" data-bind="poll.totalVotes">51 résidents</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm mt-1">
+                                    <span class="text-gray-600 dark:text-gray-400">Participation</span>
+                                    <span class="font-medium text-primary-500" data-bind="poll.participation">68%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center space-x-6">
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i class="fas fa-comment"></i>
+                                    <span data-bind="post.comments.count">8 commentaires</span>
+                                </button>
+                                <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i class="fas fa-share"></i>
+                                    <span>Partager</span>
+                                </button>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                                Vous avez voté
+                            </div>
+                        </div>
+                    </article>
+                    <!-- @END_COMPONENT: PollWidget -->
+
+                    <!-- Load More Button -->
+                    <div class="flex justify-center mt-8">
+                        <button class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" data-event="click:loadMore">
+                            Charger plus de posts
+                        </button>
+                    </div>
+                </div>
+
+                <!-- @COMPONENT: Sidebar [activities: Activity[], announcements: Announcement[]] -->
+                <aside class="hidden xl:block space-y-6">
+                    <!-- Community Stats -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="font-semibold mb-4">Statistiques de la communauté</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">Résidents actifs</span>
+                                <span class="font-medium" data-bind="community.stats.activeUsers">156</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">Posts cette semaine</span>
+                                <span class="font-medium" data-bind="community.stats.weeklyPosts">23</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">Sondages actifs</span>
+                                <span class="font-medium text-primary-500" data-bind="community.stats.activePolls">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="font-semibold mb-4">Actions rapides</h3>
+                        <div class="space-y-2">
+                            <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left" data-event="click:createAnnouncement">
+                                <div class="w-8 h-8 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-bullhorn text-red-600 dark:text-red-400 text-sm"></i>
+                                </div>
+                                <span>Créer une annonce</span>
+                            </button>
+                            <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left" data-event="click:createPoll">
+                                <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-poll text-blue-600 dark:text-blue-400 text-sm"></i>
+                                </div>
+                                <span>Lancer un sondage</span>
+                            </button>
+                            <button class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left" data-event="click:createMarketListing">
+                                <div class="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-store text-green-600 dark:text-green-400 text-sm"></i>
+                                </div>
+                                <span>Vendre un objet</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <h3 class="font-semibold mb-4">Activité récente</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: activities.map(activity => ( -->
+                            <div class="flex items-start space-x-3" data-mock="true">
+                                <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-medium text-xs" data-bind="activity.user.initials">PM</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm">
+                                        <span class="font-medium" data-bind="activity.user.name">Pierre Martin</span>
+                                        <span class="text-gray-600 dark:text-gray-400" data-bind="activity.action"> a commenté sur </span>
+                                        <span class="font-medium" data-bind="activity.target">"Travaux d'ascenseur"</span>
+                                    </p>
+                                    <p class="text-xs text-gray-500" data-bind="activity.time">Il y a 15 min</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3" data-mock="true">
+                                <div class="w-8 h-8 bg-secondary-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-medium text-xs" data-bind="activity.user.initials">SL</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm">
+                                        <span class="font-medium" data-bind="activity.user.name">Sophie Lévy</span>
+                                        <span class="text-gray-600 dark:text-gray-400" data-bind="activity.action"> a voté dans le sondage </span>
+                                        <span class="font-medium" data-bind="activity.target">"Couleur cage d'escalier"</span>
+                                    </p>
+                                    <p class="text-xs text-gray-500" data-bind="activity.time">Il y a 1h</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </aside>
+                <!-- @END_COMPONENT: Sidebar -->
+            </div>
+        </main>
+    </div>
+
+    <!-- @COMPONENT: Composer [isOpen: boolean, type: 'post' | 'poll' | 'market'] -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" id="composerModal">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold">Créer un nouveau post</h2>
+                    <button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-event="click:closeComposer">
+                        <i class="fas fa-times text-gray-400"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                    <!-- Post Type Selection -->
+                    <div>
+                        <label class="block text-sm font-medium mb-3">Type de post</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <button class="p-3 border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-center" data-type="announcement">
+                                <i class="fas fa-bullhorn text-primary-500 mb-1"></i>
+                                <p class="text-sm font-medium">Annonce</p>
+                            </button>
+                            <button class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-center hover:border-primary-300" data-type="service">
+                                <i class="fas fa-handshake text-gray-600 dark:text-gray-400 mb-1"></i>
+                                <p class="text-sm font-medium">Service</p>
+                            </button>
+                            <button class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-center hover:border-primary-300" data-type="market">
+                                <i class="fas fa-store text-gray-600 dark:text-gray-400 mb-1"></i>
+                                <p class="text-sm font-medium">Marketplace</p>
+                            </button>
+                            <button class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-center hover:border-primary-300" data-type="poll">
+                                <i class="fas fa-poll text-gray-600 dark:text-gray-400 mb-1"></i>
+                                <p class="text-sm font-medium">Sondage</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Titre</label>
+                        <input type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                               placeholder="Donnez un titre à votre post..."
+                               data-bind="composer.title">
+                    </div>
+
+                    <!-- Content -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Contenu</label>
+                        <textarea rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none" 
+                                  placeholder="Écrivez votre message..."
+                                  data-bind="composer.body"></textarea>
+                    </div>
+
+                    <!-- Tags -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tags</label>
+                        <input type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                               placeholder="Ajoutez des tags séparés par des virgules..."
+                               data-bind="composer.tags">
+                    </div>
+
+                    <!-- Image Upload (for marketplace) -->
+                    <div class="hidden" id="imageUploadSection">
+                        <label class="block text-sm font-medium mb-2">Images</label>
+                        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary-300 transition-colors">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600 dark:text-gray-400 mb-2">Glissez-déposez vos images ou</p>
+                            <button class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600" data-event="click:selectImages">
+                                Choisir des fichiers
+                            </button>
+                            <p class="text-xs text-gray-500 mt-2">PNG, JPG jusqu'à 5MB chacune</p>
+                        </div>
+                    </div>
+
+                    <!-- Price (for marketplace) -->
+                    <div class="hidden" id="priceSection">
+                        <label class="block text-sm font-medium mb-2">Prix</label>
+                        <div class="relative">
+                            <input type="number" class="w-full px-3 py-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                                   placeholder="0"
+                                   data-bind="composer.price">
+                            <span class="absolute right-3 top-2 text-gray-500">€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Votre post sera visible par tous les membres de la communauté
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" data-event="click:closeComposer">
+                            Annuler
+                        </button>
+                        <button class="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors" data-event="click:publishPost">
+                            Publier
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Composer -->
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
+        <div class="flex items-center justify-around py-2">
+            <button class="flex flex-col items-center p-2 text-primary-500">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs mt-1">Accueil</span>
+            </button>
+            <button class="flex flex-col items-center p-2 text-gray-600 dark:text-gray-400">
+                <i class="fas fa-store text-lg"></i>
+                <span class="text-xs mt-1">Market</span>
+            </button>
+            <button class="flex flex-col items-center p-2 bg-primary-500 text-white rounded-full -mt-2" data-event="click:openComposer">
+                <i class="fas fa-plus text-lg"></i>
+            </button>
+            <button class="flex flex-col items-center p-2 text-gray-600 dark:text-gray-400">
+                <i class="fas fa-poll text-lg"></i>
+                <span class="text-xs mt-1">Sondages</span>
+            </button>
+            <button class="flex flex-col items-center p-2 text-gray-600 dark:text-gray-400">
+                <i class="fas fa-user text-lg"></i>
+                <span class="text-xs mt-1">Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Theme toggle functionality
+            window.toggleTheme = function() {
+                document.documentElement.classList.toggle('dark');
+                // TODO: Save theme preference to localStorage
+            };
+
+            // Sidebar toggle for mobile
+            window.toggleSidebar = function() {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('-translate-x-full');
+            };
+
+            // Modal management
+            window.openComposer = function() {
+                document.getElementById('composerModal').classList.remove('hidden');
+                // TODO: Initialize composer state
+            };
+
+            window.closeComposer = function() {
+                document.getElementById('composerModal').classList.add('hidden');
+                // TODO: Clear composer state
+            };
+
+            // Initialize dark mode based on system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                const sidebar = document.getElementById('sidebar');
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isMenuButton = event.target.closest('[onclick*="toggleSidebar"]');
+                
+                if (!isClickInsideSidebar && !isMenuButton && window.innerWidth < 1024) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+
+            // Simulate real-time updates
+            // TODO: Replace with actual Socket.IO implementation
+            function simulateRealtimeUpdates() {
+                // Simulate notification count updates
+                // Simulate new post arrivals
+                // Simulate poll vote updates
+            }
+
+            // Composer type switching
+            document.addEventListener('click', function(event) {
+                if (event.target.closest('[data-type]')) {
+                    const type = event.target.closest('[data-type]').dataset.type;
+                    
+                    // Reset all buttons
+                    document.querySelectorAll('[data-type]').forEach(btn => {
+                        btn.className = btn.className.replace(/border-primary-500|bg-primary-50|dark:bg-primary-900\/20/, '');
+                        btn.className += ' border border-gray-300 dark:border-gray-600 hover:border-primary-300';
+                    });
+                    
+                    // Activate selected button
+                    const selectedBtn = event.target.closest('[data-type]');
+                    selectedBtn.className = 'p-3 border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-center';
+                    
+                    // Show/hide relevant sections
+                    document.getElementById('imageUploadSection').classList.toggle('hidden', type !== 'market');
+                    document.getElementById('priceSection').classList.toggle('hidden', type !== 'market');
+                }
+            });
+
+            // Poll voting simulation
+            document.addEventListener('click', function(event) {
+                if (event.target.closest('.poll-option')) {
+                    const option = event.target.closest('.poll-option');
+                    const radio = option.querySelector('.w-3.h-3');
+                    
+                    // Clear all selections in this poll
+                    option.closest('article').querySelectorAll('.poll-option .w-3.h-3').forEach(r => {
+                        r.classList.remove('opacity-100');
+                        r.classList.add('opacity-0');
+                    });
+                    
+                    // Select this option
+                    radio.classList.remove('opacity-0');
+                    radio.classList.add('opacity-100');
+                    
+                    // TODO: Send vote to API and update counts via WebSocket
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
