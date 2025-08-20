@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
+import { SocketProvider } from "@/lib/socket";
 import { useAuthStore } from "@/lib/store";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -19,16 +20,18 @@ function App() {
   }
 
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <div className="min-h-screen bg-background transition-colors duration-300">
-            {user ? <Home /> : <Landing />}
-            <Toaster />
-          </div>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <SocketProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <div className="min-h-screen bg-background transition-colors duration-300">
+              {user ? <Home /> : <Landing />}
+              <Toaster />
+            </div>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </SocketProvider>
   );
 }
 

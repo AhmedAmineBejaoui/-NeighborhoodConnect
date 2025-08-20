@@ -71,11 +71,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         scriptSrc: isDevelopment
-          ? ["'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:*", "ws://localhost:*"]
+
+          ? [
+              "'self'",
+              "'unsafe-inline'",
+              "'unsafe-eval'",
+              "http://localhost:*",
+              "http://127.0.0.1:*",
+              "ws://localhost:*",
+              "ws://127.0.0.1:*"
+            ]
           : ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: isDevelopment
-          ? ["'self'", "ws://localhost:*", "http://localhost:*"]
+          ? [
+              "'self'",
+              "ws://localhost:*",
+              "ws://127.0.0.1:*",
+              "http://localhost:*",
+              "http://127.0.0.1:*"
+            ]
+
           : ["'self'"],
       },
     },
