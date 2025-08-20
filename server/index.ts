@@ -4,7 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 export default app;
-app.set('trust proxy', 1); // Fix for rate limiting in Replit environment
+app.set('trust proxy', 1); // trust first proxy for accurate client IPs
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

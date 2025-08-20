@@ -11,7 +11,7 @@ export const generalRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  trustProxy: true, // Fix for Replit environment
+  trustProxy: true, // trust proxy to obtain real client IP
 });
 
 // Stricter rate limit for authentication endpoints
