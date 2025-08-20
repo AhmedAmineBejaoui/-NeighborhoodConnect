@@ -63,12 +63,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: isDevelopment 
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://fonts.gstatic.com"
+        ],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        scriptSrc: isDevelopment
           ? ["'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:*", "ws://localhost:*"]
           : ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: isDevelopment 
+        connectSrc: isDevelopment
           ? ["'self'", "ws://localhost:*", "http://localhost:*"]
           : ["'self'"],
       },
