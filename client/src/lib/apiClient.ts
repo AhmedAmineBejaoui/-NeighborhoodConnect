@@ -171,14 +171,6 @@ export class ApiClient {
     });
   }
 
-  // Uploads
-  async getUploadSignedUrl(contentType: string, filename: string) {
-    return this.request<{ url: string; key: string; publicUrl: string }>("/uploads/sign", {
-      method: "POST",
-      body: JSON.stringify({ contentType, filename }),
-    });
-  }
-
   // Notifications
   async getNotifications() {
     return this.request("/notifications");

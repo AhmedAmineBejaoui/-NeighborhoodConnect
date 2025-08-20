@@ -7,12 +7,12 @@ export interface UserDocument extends Omit<UserType, 'id'>, Document {
 }
 
 const userSchema = new Schema({
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true, 
+  email: {
+    type: String,
+    required: true,
+    unique: true,
     index: true,
-    lowercase: true 
+    lowercase: true
   },
   name: { type: String, required: true },
   passwordHash: { type: String, required: true },
@@ -36,7 +36,6 @@ const userSchema = new Schema({
   }
 });
 
-userSchema.index({ email: 1 });
 userSchema.index({ communityIds: 1 });
 
 userSchema.methods.comparePassword = async function(password: string): Promise<boolean> {

@@ -1,111 +1,46 @@
-import { UserModel, UserDocument } from "./models/User";
-import { PostModel } from "./models/Post";
-import { CommentModel } from "./models/Comment";
-import { CommunityModel } from "./models/Community";
-import { NotificationModel } from "./models/Notification";
-import { ReportModel } from "./models/Report";
-import { VoteModel } from "./models/Vote";
-import type { User, InsertUser } from "@shared/schema";
-import bcrypt from "bcryptjs";
+import { createClient } from '@supabase/supabase-js';
 
-export interface IStorage {
-  // Users
-  getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  authenticateUser(email: string, password: string): Promise<User | null>;
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET!;
+const SUPABASE_PUBLIC = String(process.env.SUPABASE_PUBLIC_BUCKET || 'true') === 'true';
+
+if (!SUPABASE_URL || !SUPABASE_KEY || !SUPABASE_BUCKET) {
+  throw new Error('Supabase Storage config manquante. Vérifie SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SUPABASE_BUCKET');
 }
 
-export class MongoStorage implements IStorage {
-  async getUser(id: string): Promise<User | undefined> {
-    try {
-      const user = await UserModel.findById(id).lean();
-      if (!user) return undefined;
-      
-      return {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.roles[0] || 'resident',
-        communityIds: user.communityIds?.map(id => id.toString()) || [],
-        createdAt: user.createdAt || new Date(),
-      };
-    } catch (error) {
-      console.error('Error getting user by ID:', error);
-      return undefined;
-    }
-  }
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    try {
-      const user = await UserModel.findOne({ email: email.toLowerCase() }).lean();
-      if (!user) return undefined;
-      
-      return {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.roles[0] || 'resident',
-        communityIds: user.communityIds?.map(id => id.toString()) || [],
-        createdAt: user.createdAt || new Date(),
-      };
-    } catch (error) {
-      console.error('Error getting user by email:', error);
-      return undefined;
-    }
-  }
+export async function uploadBuffer(key: string, buffer: Buffer, contentType?: string) {
+  const { data, error } = await supabase
+    .storage
+    .from(SUPABASE_BUCKET)
+    .upload(key, buffer, { upsert: true, contentType });
 
-  async createUser(userData: InsertUser): Promise<User> {
-    try {
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(userData.password, salt);
-
-      const user = new UserModel({
-        email: userData.email.toLowerCase(),
-        name: userData.name,
-        passwordHash,
-        roles: [userData.role || 'resident'],
-        communityIds: userData.communityIds || [],
-      });
-
-      const savedUser = await user.save();
-      
-      return {
-        id: savedUser._id.toString(),
-        email: savedUser.email,
-        name: savedUser.name,
-        role: savedUser.roles[0] || 'resident',
-        communityIds: savedUser.communityIds?.map(id => id.toString()) || [],
-        createdAt: savedUser.createdAt || new Date(),
-      };
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw new Error('Failed to create user');
-    }
-  }
-
-  async authenticateUser(email: string, password: string): Promise<User | null> {
-    try {
-      const user = await UserModel.findOne({ email: email.toLowerCase() });
-      if (!user) return null;
-
-      const isMatch = await user.comparePassword(password);
-      if (!isMatch) return null;
-
-      return {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.roles[0] || 'resident',
-        communityIds: user.communityIds?.map(id => id.toString()) || [],
-        createdAt: user.createdAt || new Date(),
-      };
-    } catch (error) {
-      console.error('Error authenticating user:', error);
-      return null;
-    }
-  }
+  if (error) throw error;
+  return data; // { path, ... }
 }
 
-export const storage = new MongoStorage();
+export function getPublicUrl(key: string) {
+  const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(key);
+  return data.publicUrl;
+}
+
+export async function getSignedUrl(key: string, expiresInSeconds = 3600) {
+  const { data, error } = await supabase
+    .storage
+    .from(SUPABASE_BUCKET)
+    .createSignedUrl(key, expiresInSeconds);
+
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function removeObject(key: string) {
+  const { error } = await supabase.storage.from(SUPABASE_BUCKET).remove([key]);
+  if (error) throw error;
+}
+
+export async function urlFor(key: string) {
+  return SUPABASE_PUBLIC ? getPublicUrl(key) : getSignedUrl(key, 3600);
+}

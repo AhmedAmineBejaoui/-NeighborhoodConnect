@@ -36,7 +36,7 @@ const postSchema = new Schema({
     images: [{ type: String }],
     options: [{ type: String }],
   },
-  expiresAt: { type: Date, index: true },
+  expiresAt: { type: Date },
 }, {
   timestamps: true,
   toJSON: {

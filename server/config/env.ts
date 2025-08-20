@@ -15,12 +15,11 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().default('mongodb://localhost:27017/community-hub'),
   
-  // S3
-  S3_ENDPOINT: z.string().optional(),
-  S3_REGION: z.string().default('us-east-1'),
-  S3_BUCKET: z.string().default('community-hub-media'),
-  S3_ACCESS_KEY: z.string().default('placeholder-access-key'),
-  S3_SECRET_KEY: z.string().default('placeholder-secret-key'),
+    // Supabase
+  SUPABASE_URL: z.string(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  SUPABASE_BUCKET: z.string().default('community-hub-media'),
+  SUPABASE_PUBLIC_BUCKET: z.string().default('true'),
   
   // Spam
   SPAM_THRESHOLD: z.string().transform(Number).default("0.7"),
