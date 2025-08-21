@@ -6,7 +6,6 @@ import { NotificationModel } from "./models/Notification";
 import { ReportModel } from "./models/Report";
 import { VoteModel } from "./models/Vote";
 import type { User, InsertUser } from "@shared/schema";
-import bcrypt from "bcryptjs";
 
 export interface IStorage {
   // Users
@@ -57,14 +56,14 @@ export class MongoStorage implements IStorage {
 
   async createUser(userData: InsertUser): Promise<User> {
     try {
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(userData.password, salt);
-
       const user = new UserModel({
         email: userData.email.toLowerCase(),
         name: userData.name,
-        passwordHash,
+        // The pre-save hook on the User model is responsible for hashing
+        // the password.  Passing the plain password here avoids hashing
+        // the already-hashed password twice, which prevented subsequent
+        // logins from succeeding.
+        passwordHash: userData.password,
         roles: userData.roles || ['resident'],
         communityIds: userData.communityIds || [],
       });
