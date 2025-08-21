@@ -4,7 +4,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import bcrypt from 'bcryptjs';
 
 // Configuration
 import { env } from './config/env';
@@ -21,7 +20,7 @@ import { ReportModel } from './models/Report';
 import { NotificationModel } from './models/Notification';
 
 // Services
-import { AuthService } from './services/auth.service';
+import { generateToken } from './services/auth.service';
 import { RBACService } from './services/rbac';
 import { SpamService } from './services/spam';
 import { NotificationService } from './services/notifications';
@@ -30,7 +29,7 @@ import { uploadBuffer, urlFor } from './storage';
 import { storage } from './mongoStorage';
 
 // Middleware
-import { authMiddleware, optionalAuth, AuthRequest } from './middlewares/auth';
+import { requireAuth, optionalAuth, AuthRequest } from './middlewares/auth';
 import { rbacGuard, permissionGuard } from './middlewares/rbacGuard';
 import { errorHandler, notFoundHandler } from './middlewares/error';
 import { generalRateLimit, authRateLimit, authenticatedRateLimit, postRateLimit } from './middlewares/rateLimit';
@@ -117,8 +116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', authRateLimit, async (req, res, next) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
-          // Check if user exists
+
+      // Check if user exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(409).json({ error: 'User already exists' });
@@ -130,20 +129,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: userData.password,
       });
 
-      const accessToken = AuthService.generateAccessToken(user);
-      const refreshToken = AuthService.generateRefreshToken(user);
+      const token = generateToken(user);
 
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie('token', token, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      res.status(201).json({ 
-        user, 
-        accessToken 
-      });
+      res.status(201).json({ user });
     } catch (error) {
       next(error);
     }
@@ -158,52 +153,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      const accessToken = AuthService.generateAccessToken(user);
-      const refreshToken = AuthService.generateRefreshToken(user);
+      const token = generateToken(user);
 
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie('token', token, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      res.json({ user, accessToken });
+      res.json({ user });
     } catch (error) {
       next(error);
     }
   });
 
-  app.post('/api/auth/refresh', async (req, res, next) => {
-    try {
-      const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) {
-        return res.status(401).json({ error: 'Refresh token required' });
-      }
-
-      const decoded = AuthService.verifyRefreshToken(refreshToken);
-      const user = await storage.getUser(decoded.userId);
-
-      if (!user) {
-        return res.status(401).json({ error: 'User not found' });
-      }
-
-      const userJson = user as User;
-      const accessToken = AuthService.generateAccessToken(userJson);
-
-      res.json({ accessToken, user: userJson });
-    } catch (error) {
-      next(error);
-    }
+  app.get('/api/auth/me', requireAuth, (req: AuthRequest, res) => {
+    res.json(req.user);
   });
 
-  app.post('/api/auth/logout', async (req, res) => {
-    const refreshToken = req.cookies.refreshToken;
-    if (refreshToken) {
-      AuthService.blacklistRefreshToken(refreshToken);
-    }
-
-    res.clearCookie('refreshToken');
+  app.post('/api/auth/logout', async (_req, res) => {
+    res.clearCookie('token');
     res.status(204).send();
   });
 
@@ -262,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/posts', authMiddleware, rbacGuard('resident', 'moderator', 'admin'), postRateLimit, idempotencyMiddleware, async (req: AuthRequest, res, next) => {
+  app.post('/api/posts', requireAuth, rbacGuard('resident', 'moderator', 'admin'), postRateLimit, idempotencyMiddleware, async (req: AuthRequest, res, next) => {
     try {
       const postData = insertPostSchema.parse(req.body);
 
@@ -322,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Comments routes
-  app.post('/api/posts/:id/comments', authMiddleware, rbacGuard('resident', 'moderator', 'admin'), async (req: AuthRequest, res, next) => {
+  app.post('/api/posts/:id/comments', requireAuth, rbacGuard('resident', 'moderator', 'admin'), async (req: AuthRequest, res, next) => {
     try {
       const commentData = insertCommentSchema.parse(req.body);
 
@@ -374,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Votes routes
-  app.post('/api/posts/:id/votes', authMiddleware, rbacGuard('resident', 'moderator', 'admin'), idempotencyMiddleware, async (req: AuthRequest, res, next) => {
+  app.post('/api/posts/:id/votes', requireAuth, rbacGuard('resident', 'moderator', 'admin'), idempotencyMiddleware, async (req: AuthRequest, res, next) => {
     try {
       const voteData = insertVoteSchema.parse(req.body);
 
@@ -422,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reports routes
-  app.post('/api/reports', authMiddleware, rbacGuard('resident', 'moderator', 'admin'), idempotencyMiddleware, async (req: AuthRequest, res, next) => {
+  app.post('/api/reports', requireAuth, rbacGuard('resident', 'moderator', 'admin'), idempotencyMiddleware, async (req: AuthRequest, res, next) => {
     try {
       const reportData = insertReportSchema.parse(req.body);
 
@@ -445,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Moderation routes
-  app.get('/api/moderation/reports', authMiddleware, rbacGuard('moderator', 'admin'), async (req, res, next) => {
+  app.get('/api/moderation/reports', requireAuth, rbacGuard('moderator', 'admin'), async (req, res, next) => {
     try {
       const { cursor, limit } = getPaginationParams(req);
       const { status = 'open' } = req.query;
@@ -466,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/moderation/:id/hide', authMiddleware, rbacGuard('moderator', 'admin'), async (req, res, next) => {
+  app.post('/api/moderation/:id/hide', requireAuth, rbacGuard('moderator', 'admin'), async (req, res, next) => {
     try {
       const { targetType } = req.body;
 
@@ -495,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/moderation/reports/:id/resolve', authMiddleware, rbacGuard('moderator', 'admin'), async (req, res, next) => {
+  app.post('/api/moderation/reports/:id/resolve', requireAuth, rbacGuard('moderator', 'admin'), async (req, res, next) => {
     try {
       const report = await ReportModel.findByIdAndUpdate(
         req.params.id,
@@ -535,7 +505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notifications routes
-  app.get('/api/notifications', authMiddleware, async (req: AuthRequest, res, next) => {
+  app.get('/api/notifications', requireAuth, async (req: AuthRequest, res, next) => {
     try {
       const notifications = await NotificationService.getUserNotifications(req.user!.id);
       res.json(notifications);
@@ -544,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/notifications/unread-count', authMiddleware, async (req: AuthRequest, res, next) => {
+  app.get('/api/notifications/unread-count', requireAuth, async (req: AuthRequest, res, next) => {
     try {
       const count = await NotificationService.getUnreadCount(req.user!.id);
       res.json({ count });
@@ -553,7 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/notifications/:id/read', authMiddleware, async (req: AuthRequest, res, next) => {
+  app.post('/api/notifications/:id/read', requireAuth, async (req: AuthRequest, res, next) => {
     try {
       await NotificationService.markAsRead(req.params.id, req.user!.id);
       res.status(204).send();

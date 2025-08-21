@@ -48,14 +48,16 @@ export default function Landing() {
       });
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async () => {
       try { localStorage.setItem('hasLoggedInBefore', '1'); } catch {}
-      setAuth(data.user, data.accessToken);
+      const meRes = await apiRequest("GET", "/api/auth/me");
+      const user = await meRes.json();
+      setAuth(user, null);
       toast({
         title: "Connexion réussie",
         description: "Bienvenue dans votre communauté !",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -75,14 +77,16 @@ export default function Landing() {
       });
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async () => {
       try { localStorage.setItem('hasLoggedInBefore', '1'); } catch {}
-      setAuth(data.user, data.accessToken);
+      const meRes = await apiRequest("GET", "/api/auth/me");
+      const user = await meRes.json();
+      setAuth(user, null);
       toast({
         title: "Compte créé avec succès",
         description: "Bienvenue dans votre nouvelle communauté !",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({

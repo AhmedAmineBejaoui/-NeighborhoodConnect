@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/auth.service';
+import { verifyToken } from '../services/auth.service';
 import { UserModel } from '../models/User';
 import { User } from '@shared/schema';
 
@@ -7,20 +7,19 @@ export interface AuthRequest extends Request {
   user?: User;
 }
 
-export const authMiddleware = async (
+export const requireAuth = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '') ||
-                  req.cookies?.accessToken;
+    const token = req.cookies?.token;
 
     if (!token) {
       return res.status(401).json({ error: 'Access token required' });
     }
 
-    const decoded = AuthService.verifyAccessToken(token);
+    const decoded = verifyToken(token);
     const user = await UserModel.findById(decoded.userId).lean();
 
     if (!user) {
@@ -40,14 +39,13 @@ export const optionalAuth = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '') ||
-                  req.cookies?.accessToken;
+    const token = req.cookies?.token;
 
     if (!token) {
       return next();
     }
 
-    const decoded = AuthService.verifyAccessToken(token);
+    const decoded = verifyToken(token);
     const user = await UserModel.findById(decoded.userId).lean();
 
     if (user) {
