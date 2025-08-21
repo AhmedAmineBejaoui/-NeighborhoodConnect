@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
-import { AuthService } from '../services/auth.service';
+import { verifyToken } from '../services/auth.service';
 import { UserModel } from '../models/User';
 import { logger } from '../config/logger';
 import url from 'url';
@@ -41,7 +41,9 @@ export class WebSocketService {
         return;
       }
 
-      const decoded = AuthService.verifyToken(token);
+
+      const decoded = verifyToken(token);
+
       const user = await UserModel.findById(decoded.userId).lean();
 
       if (!user) {

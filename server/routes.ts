@@ -4,7 +4,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import bcrypt from 'bcryptjs';
 
 // Configuration
 import { env } from './config/env';
@@ -21,7 +20,7 @@ import { ReportModel } from './models/Report';
 import { NotificationModel } from './models/Notification';
 
 // Services
-import { AuthService } from './services/auth.service';
+import { generateToken } from './services/auth.service';
 import { RBACService } from './services/rbac';
 import { SpamService } from './services/spam';
 import { NotificationService } from './services/notifications';
@@ -130,7 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: userData.password,
       });
 
-      const token = AuthService.generateToken(user);
+
+      const token = generateToken(user);
+
 
       res.cookie('token', token, {
         httpOnly: true,
@@ -154,7 +155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      const token = AuthService.generateToken(user);
+      const token = generateToken(user);
+
 
       res.cookie('token', token, {
         httpOnly: true,
