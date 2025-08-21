@@ -129,7 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: userData.password,
       });
 
+
       const token = generateToken(user);
+
 
       res.cookie('token', token, {
         httpOnly: true,
@@ -154,6 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const token = generateToken(user);
+
 
       res.cookie('token', token, {
         httpOnly: true,

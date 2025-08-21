@@ -13,13 +13,17 @@ export const requireAuth = async (
   next: NextFunction
 ) => {
   try {
+
     const token = req.cookies?.token;
+
 
     if (!token) {
       return res.status(401).json({ error: 'Access token required' });
     }
 
+
     const decoded = verifyToken(token);
+
     const user = await UserModel.findById(decoded.userId).lean();
 
     if (!user) {
@@ -39,13 +43,17 @@ export const optionalAuth = async (
   next: NextFunction
 ) => {
   try {
+
     const token = req.cookies?.token;
+
 
     if (!token) {
       return next();
     }
 
+
     const decoded = verifyToken(token);
+
     const user = await UserModel.findById(decoded.userId).lean();
 
     if (user) {

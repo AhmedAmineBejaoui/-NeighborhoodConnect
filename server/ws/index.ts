@@ -41,7 +41,9 @@ export class WebSocketService {
         return;
       }
 
+
       const decoded = verifyToken(token);
+
       const user = await UserModel.findById(decoded.userId).lean();
 
       if (!user) {

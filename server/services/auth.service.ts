@@ -1,3 +1,4 @@
+
 import jwt from 'jsonwebtoken';
 import { User } from '@shared/schema';
 
@@ -11,6 +12,7 @@ export function generateToken(user: User) {
     { expiresIn: '7d' }
   );
 }
+
 
 /**
  * Verify and decode a JWT.
