@@ -5,12 +5,11 @@ export const userSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   name: z.string(),
-  passwordHash: z.string(),
   roles: z.array(z.enum(['admin', 'moderator', 'resident'])),
   communityIds: z.array(z.string()),
   unitId: z.string().optional(),
   createdAt: z.date(),
-  updatedAt: z.date(),
+  updatedAt: z.date().optional(),
 });
 
 export const insertUserSchema = z.object({

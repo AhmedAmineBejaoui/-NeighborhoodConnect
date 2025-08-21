@@ -49,6 +49,7 @@ export default function Landing() {
       return response.json();
     },
     onSuccess: (data) => {
+      try { localStorage.setItem('hasLoggedInBefore', '1'); } catch {}
       setAuth(data.user, data.accessToken);
       toast({
         title: "Connexion réussie",
@@ -75,6 +76,7 @@ export default function Landing() {
       return response.json();
     },
     onSuccess: (data) => {
+      try { localStorage.setItem('hasLoggedInBefore', '1'); } catch {}
       setAuth(data.user, data.accessToken);
       toast({
         title: "Compte créé avec succès",

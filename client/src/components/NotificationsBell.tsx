@@ -13,14 +13,14 @@ import { fr } from "date-fns/locale";
 export default function NotificationsBell() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: unreadCount, refetch: refetchCount } = useQuery({
+  const { data: unreadCount, refetch: refetchCount } = useQuery<{ count: number }>({
     queryKey: ["/api/notifications/unread-count"],
     queryFn: () => apiClient.getUnreadCount(),
   });
 
   const { data: notifications, refetch: refetchNotifications } = useQuery({
     queryKey: ["/api/notifications"],
-    queryFn: () => apiClient.getNotifications(),
+    queryFn: async () => (await apiClient.getNotifications()) as any[],
     enabled: isOpen,
   });
 
@@ -77,13 +77,13 @@ export default function NotificationsBell() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="relative" data-testid="button-notifications">
           <i className="fas fa-bell text-gray-600 dark:text-gray-400"></i>
-          {unreadCount?.count > 0 && (
+          {(unreadCount?.count ?? 0) > 0 && (
             <Badge 
               variant="destructive" 
               className="absolute -top-1 -right-1 h-5 w-5 text-xs flex items-center justify-center p-0"
               data-testid="badge-notification-count"
             >
-              {unreadCount.count > 9 ? "9+" : unreadCount.count}
+              {(unreadCount?.count ?? 0) > 9 ? "9+" : (unreadCount?.count ?? 0)}
             </Badge>
           )}
         </Button>
@@ -91,7 +91,7 @@ export default function NotificationsBell() {
       <PopoverContent className="w-80" align="end">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Notifications</h3>
-          {unreadCount?.count > 0 && (
+          {(unreadCount?.count ?? 0) > 0 && (
             <Button variant="ghost" size="sm" data-testid="button-mark-all-read">
               Tout marquer comme lu
             </Button>
@@ -99,9 +99,9 @@ export default function NotificationsBell() {
         </div>
 
         <ScrollArea className="h-96">
-          {notifications?.length ? (
+          {(notifications?.length ?? 0) ? (
             <div className="space-y-2">
-              {notifications.map((notification: any) => (
+              {(notifications ?? []).map((notification: any) => (
                 <div
                   key={notification.id}
                   className={`p-3 rounded-lg cursor-pointer transition-colors ${

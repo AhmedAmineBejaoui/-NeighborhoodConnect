@@ -12,12 +12,12 @@ export default function CommunityPage() {
   const { id } = useParams();
   const { user } = useAuthStore();
 
-  const { data: community, isLoading: communityLoading } = useQuery({
+  const { data: community, isLoading: communityLoading } = useQuery<any>({
     queryKey: ["/api/communities", id],
     enabled: !!id,
   });
 
-  const { data: posts, isLoading: postsLoading } = useQuery({
+  const { data: posts, isLoading: postsLoading } = useQuery<{ items: any[]; hasMore: boolean }>({
     queryKey: ["/api/communities", id, "posts"],
     enabled: !!id,
   });

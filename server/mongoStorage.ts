@@ -23,10 +23,10 @@ export class MongoStorage implements IStorage {
       if (!user) return undefined;
       
       return {
-        id: user._id.toString(),
+        id: (user._id as any).toString(),
         email: user.email,
         name: user.name,
-        role: user.roles[0] || 'resident',
+        roles: user.roles && user.roles.length ? user.roles : ['resident'],
         communityIds: user.communityIds?.map(id => id.toString()) || [],
         createdAt: user.createdAt || new Date(),
       };
@@ -42,10 +42,10 @@ export class MongoStorage implements IStorage {
       if (!user) return undefined;
       
       return {
-        id: user._id.toString(),
+        id: (user._id as any).toString(),
         email: user.email,
         name: user.name,
-        role: user.roles[0] || 'resident',
+        roles: user.roles && user.roles.length ? user.roles : ['resident'],
         communityIds: user.communityIds?.map(id => id.toString()) || [],
         createdAt: user.createdAt || new Date(),
       };
@@ -65,17 +65,17 @@ export class MongoStorage implements IStorage {
         email: userData.email.toLowerCase(),
         name: userData.name,
         passwordHash,
-        roles: [userData.role || 'resident'],
+        roles: userData.roles || ['resident'],
         communityIds: userData.communityIds || [],
       });
 
       const savedUser = await user.save();
       
       return {
-        id: savedUser._id.toString(),
+        id: (savedUser._id as any).toString(),
         email: savedUser.email,
         name: savedUser.name,
-        role: savedUser.roles[0] || 'resident',
+        roles: savedUser.roles && savedUser.roles.length ? savedUser.roles : ['resident'],
         communityIds: savedUser.communityIds?.map(id => id.toString()) || [],
         createdAt: savedUser.createdAt || new Date(),
       };
@@ -94,10 +94,10 @@ export class MongoStorage implements IStorage {
       if (!isMatch) return null;
 
       return {
-        id: user._id.toString(),
+        id: (user._id as any).toString(),
         email: user.email,
         name: user.name,
-        role: user.roles[0] || 'resident',
+        roles: user.roles && user.roles.length ? user.roles : ['resident'],
         communityIds: user.communityIds?.map(id => id.toString()) || [],
         createdAt: user.createdAt || new Date(),
       };

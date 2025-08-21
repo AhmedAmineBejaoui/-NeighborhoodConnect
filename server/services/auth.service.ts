@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { UserModel, UserDocument } from '../models/User';
 import { User } from '@shared/schema';

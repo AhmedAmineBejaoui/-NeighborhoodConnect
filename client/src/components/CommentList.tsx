@@ -44,9 +44,13 @@ export default function CommentList({ postId, isVisible }: CommentListProps) {
   });
 
   // Fetch comments
-  const { data: commentsData, isLoading } = useQuery({
+  const { data: commentsData, isLoading } = useQuery<
+    { items: Comment[]; hasMore?: boolean } | Comment[]
+  >({
     queryKey: ["/api/posts", postId, "comments"],
-    queryFn: () => apiClient.getPostComments(postId),
+    queryFn: async () => (await apiClient.getPostComments(postId)) as
+      | { items: Comment[]; hasMore?: boolean }
+      | Comment[],
     enabled: isVisible,
   });
 
@@ -82,7 +86,12 @@ export default function CommentList({ postId, isVisible }: CommentListProps) {
     createCommentMutation.mutate(data);
   };
 
-  const comments = commentsData?.items || [];
+  const comments = Array.isArray(commentsData)
+    ? (commentsData as Comment[])
+    : ((commentsData as { items?: Comment[] })?.items ?? []);
+  const hasMore = Array.isArray(commentsData)
+    ? false
+    : Boolean((commentsData as { hasMore?: boolean })?.hasMore);
 
   if (!isVisible) return null;
 
@@ -173,11 +182,11 @@ export default function CommentList({ postId, isVisible }: CommentListProps) {
         <div className="space-y-4">
           {comments.map((comment: Comment) => {
             const authorInitials = comment.author?.name
-              ?.split(' ')
+              ?.split(" ")
               .map(n => n[0])
-              .join('')
+              .join("")
               .toUpperCase()
-              .slice(0, 2) || '??';
+              .slice(0, 2) || "??";
 
             const timeAgo = formatDistanceToNow(new Date(comment.createdAt), {
               addSuffix: true,
@@ -195,7 +204,7 @@ export default function CommentList({ postId, isVisible }: CommentListProps) {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center space-x-2">
                       <p className="text-sm font-medium" data-testid="text-commenter-name">
-                        {comment.author?.name || 'Utilisateur anonyme'}
+                        {comment.author?.name || "Utilisateur anonyme"}
                       </p>
                       <span className="text-xs text-gray-500" data-testid="text-comment-time">
                         {timeAgo}
@@ -234,7 +243,7 @@ export default function CommentList({ postId, isVisible }: CommentListProps) {
       )}
 
       {/* Load More Comments */}
-      {commentsData?.hasMore && (
+      {hasMore && (
         <div className="mt-6 text-center">
           <Button variant="outline" size="sm" data-testid="button-load-more-comments">
             Voir plus de commentaires

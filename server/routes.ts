@@ -103,7 +103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   app.use(cookieParser());
-  app.use(generalRateLimit);
+  // Scope general rate limiting to API routes only to avoid throttling static assets and the app shell
+  app.use('/api', generalRateLimit);
 
   const upload = multer({ storage: multer.memoryStorage() });
 
@@ -187,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'User not found' });
       }
 
-      const userJson = { ...user, id: user._id.toString() } as User;
+      const userJson = user as User;
       const accessToken = AuthService.generateAccessToken(userJson);
 
       res.json({ accessToken, user: userJson });
@@ -268,8 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check spam
       const spamCheck = SpamService.checkContent(postData.title, postData.body);
       if (spamCheck.isSpam) {
-        logger.warn('Spam content detected:', { userId: req.user!.id, spamCheck });
-        postData.status = 'hidden';
+        logger.warn({ userId: req.user!.id, spamCheck }, 'Spam content detected');
       }
 
       // Record user activity for spam detection
@@ -277,6 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const post = new PostModel({
         ...postData,
+        ...(spamCheck.isSpam ? { status: 'hidden' } : {}),
         authorId: req.user!.id,
       });
 

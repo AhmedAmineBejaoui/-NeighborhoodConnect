@@ -66,10 +66,12 @@ export default function ReportButton({ targetType, targetId, size = "sm", varian
   });
 
   const onSubmit = (data: CreateReportData) => {
-    const customReason = form.watch("customReason");
-    const finalReason = data.reason === "other" && customReason ? customReason : 
-                       reportReasons.find(r => r.value === data.reason)?.label || data.reason;
-    
+    const customReason = (form.getValues() as any).customReason as string | undefined;
+    const finalReason: string =
+      data.reason === "other" && customReason
+        ? customReason
+        : reportReasons.find((r) => r.value === data.reason)?.label || data.reason;
+
     reportMutation.mutate({
       ...data,
       reason: finalReason,
@@ -124,7 +126,8 @@ export default function ReportButton({ targetType, targetId, size = "sm", varian
             {selectedReason === "other" && (
               <FormField
                 control={form.control}
-                name="customReason"
+                // store customReason alongside form values without strict typing
+                name={"customReason" as any}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Précisez la raison</FormLabel>

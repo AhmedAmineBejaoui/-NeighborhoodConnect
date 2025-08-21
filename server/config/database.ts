@@ -38,6 +38,6 @@ async function createIndexes() {
     await UserModel.createIndexes();
     logger.info('📊 MongoDB indexes created successfully');
   } catch (error) {
-    logger.warn('Index creation failed:', error.message);
+    logger.error({err :error},'Index creation failed')
   }
 }

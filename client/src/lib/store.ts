@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { User } from "@shared/schema";
@@ -7,8 +7,10 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   setAuth: (user: User, token: string) => void;
   logout: () => void;
+  setLoading: (loading: boolean) => void;
   updateUser: (user: User) => void;
 }
 
@@ -18,6 +20,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      isLoading: true,
       
       setAuth: (user, token) =>
         set({
@@ -26,12 +29,20 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         }),
       
-      logout: () =>
+      logout: () => {
+        // Best-effort server-side logout to clear refresh cookie
+        try {
+          void fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+        } catch {}
+        try { localStorage.removeItem("hasLoggedInBefore"); } catch {}
         set({
           user: null,
           accessToken: null,
           isAuthenticated: false,
-        }),
+        });
+      },
+
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
       
       updateUser: (user) =>
         set((state) => ({
@@ -45,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
+        // Do not persist loading flag
       }),
     }
   )
@@ -120,5 +132,40 @@ export const useComposerStore = create<ComposerState>((set) => ({
 
 // Auth Provider Component
 export function AuthProvider({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    let isMounted = true;
+    const initializeAuth = async () => {
+      try {
+        useAuthStore.getState().setLoading(true);
+        // Only attempt refresh for returning users to avoid 401 spam on first visits
+        const shouldAttemptRefresh = (() => {
+          try { return localStorage.getItem('hasLoggedInBefore') === '1'; } catch { return false; }
+        })();
+        if (!shouldAttemptRefresh) return;
+        // Attempt refresh using httpOnly cookie without throwing on 401
+        const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+        if (!isMounted) return;
+        if (res.ok) {
+          const result = await res.json();
+          useAuthStore.getState().setAuth(result.user, result.accessToken);
+        } else {
+          // Ensure logged out state if refresh fails
+          useAuthStore.getState().logout();
+        }
+      } catch {
+        if (!isMounted) return;
+        useAuthStore.getState().logout();
+      } finally {
+        if (!isMounted) return;
+        useAuthStore.getState().setLoading(false);
+      }
+    };
+
+    void initializeAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return children;
 }

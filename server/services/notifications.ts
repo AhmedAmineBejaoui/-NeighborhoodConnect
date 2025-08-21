@@ -11,7 +11,7 @@ export class NotificationService {
       // Emit via WebSocket (will be handled by WebSocket service)
       return newNotification.toJSON();
     } catch (error) {
-      logger.error('Failed to create notification:', error);
+      logger.error({ err: error }, 'Failed to create notification');
       throw error;
     }
   }
@@ -26,7 +26,7 @@ export class NotificationService {
       
       return notifications.map(n => ({ ...n, id: n._id }));
     } catch (error) {
-      logger.error('Failed to get user notifications:', error);
+      logger.error({ err: error }, 'Failed to get user notifications');
       throw error;
     }
   }
@@ -38,7 +38,7 @@ export class NotificationService {
         { readAt: new Date() }
       );
     } catch (error) {
-      logger.error('Failed to mark notification as read:', error);
+      logger.error({ err: error }, 'Failed to mark notification as read');
       throw error;
     }
   }
@@ -50,7 +50,7 @@ export class NotificationService {
         readAt: { $exists: false }
       });
     } catch (error) {
-      logger.error('Failed to get unread count:', error);
+      logger.error({ err: error }, 'Failed to get unread count');
       return 0;
     }
   }

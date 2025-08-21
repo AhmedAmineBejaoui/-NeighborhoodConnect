@@ -179,7 +179,8 @@ export function setLanguage(lang: Language) {
 }
 
 export function t(key: TranslationKey, params?: Record<string, string | number>): string {
-  let translation = translations[currentLanguage][key] || key;
+  const dict = translations[currentLanguage] as Partial<typeof translations.fr>;
+  let translation = (dict[key] as string | undefined) ?? key;
   
   if (params) {
     Object.entries(params).forEach(([param, value]) => {

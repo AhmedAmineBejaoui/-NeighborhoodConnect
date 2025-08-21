@@ -7,7 +7,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useComposerStore, useAuthStore } from "@/lib/store";
 import { apiClient } from "@/lib/apiClient";
@@ -56,8 +55,6 @@ export default function Composer() {
     type,
     closeComposer,
     reset,
-    pollOptions,
-    setPollOptions,
   } = useComposerStore();
   
   const [selectedType, setSelectedType] = useState<CreatePostData["type"]>(type as CreatePostData["type"]);
@@ -88,7 +85,6 @@ export default function Composer() {
         description: "Votre post a été publié avec succès !",
       });
       handleClose();
-      // Invalidate relevant queries
       queryClient.invalidateQueries({ 
         queryKey: ["/api/communities", user?.communityIds?.[0], "posts"] 
       });
@@ -121,7 +117,6 @@ export default function Composer() {
       return;
     }
 
-    // Parse tags from comma-separated string
     const tagsInput = (data as any).tagsInput || "";
     const tags = tagsInput
       .split(",")
@@ -177,6 +172,7 @@ export default function Composer() {
         <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
+
               {/* Post Type Selection */}
               <div>
                 <FormLabel className="text-base font-medium">Type de post</FormLabel>
@@ -194,7 +190,6 @@ export default function Composer() {
                         setSelectedType(postType.id as CreatePostData["type"]);
                         form.setValue("type", postType.id as CreatePostData["type"]);
                       }}
-                      data-testid={`post-type-${postType.id}`}
                     >
                       <div className={`w-8 h-8 ${postType.bgColor} rounded-lg flex items-center justify-center mb-2`}>
                         <i className={`${postType.icon} ${postType.color}`}></i>
@@ -216,11 +211,7 @@ export default function Composer() {
                   <FormItem>
                     <FormLabel>Titre *</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Donnez un titre à votre post..."
-                        {...field}
-                        data-testid="input-post-title"
-                      />
+                      <Input placeholder="Donnez un titre à votre post..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -235,13 +226,7 @@ export default function Composer() {
                   <FormItem>
                     <FormLabel>Contenu *</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Écrivez votre message..."
-                        rows={6}
-                        className="resize-none"
-                        {...field}
-                        data-testid="textarea-post-body"
-                      />
+                      <Textarea placeholder="Écrivez votre message..." rows={6} className="resize-none" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -251,26 +236,20 @@ export default function Composer() {
               {/* Tags */}
               <FormField
                 control={form.control}
-                name="tagsInput"
+                name="tags"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ajoutez des tags séparés par des virgules..."
-                        {...field}
-                        data-testid="input-post-tags"
-                      />
+                      <Input placeholder="Ajoutez des tags séparés par des virgules..." {...field} />
                     </FormControl>
-                    <p className="text-xs text-gray-500">
-                      Exemple: travaux, ascenseur, bâtiment-a
-                    </p>
+                    <p className="text-xs text-gray-500">Exemple: travaux, ascenseur, bâtiment-a</p>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Price field for marketplace */}
+              {/* Price for marketplace */}
               {selectedType === "market" && (
                 <FormField
                   control={form.control}
@@ -286,7 +265,6 @@ export default function Composer() {
                           step="0.01"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                          data-testid="input-post-price"
                         />
                       </FormControl>
                       <FormMessage />
@@ -295,19 +273,18 @@ export default function Composer() {
                 />
               )}
 
-              {/* Image upload for marketplace */}
+              {/* Images for marketplace */}
               {selectedType === "market" && (
                 <div>
                   <FormLabel>Images</FormLabel>
-                  <Uploader
-                    onUploadComplete={setUploadedImages}
-                    maxFiles={5}
-                    className="mt-2"
-                  />
+                  <div className="mt-2">
+                    <Uploader
+                      onUploaded={(r) => setUploadedImages((imgs) => [...imgs, r.url])}
+                      prefix="market"
+                    />
+                  </div>
                 </div>
               )}
-
-              {/* Poll options */}
               {selectedType === "poll" && (
                 <div>
                   <FormLabel>Options du sondage</FormLabel>
@@ -318,7 +295,6 @@ export default function Composer() {
                           placeholder={`Option ${index + 1}`}
                           value={option}
                           onChange={(e) => updatePollOption(index, e.target.value)}
-                          data-testid={`input-poll-option-${index}`}
                         />
                         {pollOptionInputs.length > 2 && (
                           <Button
@@ -326,7 +302,6 @@ export default function Composer() {
                             variant="outline"
                             size="sm"
                             onClick={() => removePollOption(index)}
-                            data-testid={`button-remove-option-${index}`}
                           >
                             <i className="fas fa-times"></i>
                           </Button>
@@ -334,13 +309,7 @@ export default function Composer() {
                       </div>
                     ))}
                     {pollOptionInputs.length < 6 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addPollOption}
-                        data-testid="button-add-poll-option"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={addPollOption}>
                         <i className="fas fa-plus mr-2"></i>
                         Ajouter une option
                       </Button>
@@ -348,43 +317,35 @@ export default function Composer() {
                   </div>
                 </div>
               )}
+
+              {/* Footer */}
+              <div className="flex items-center justify-between pt-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600 -mx-6 -mb-6 px-6 py-4">
+                <div className="text-sm text-gray-500 flex items-center">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  Votre post sera visible par tous les membres de la communauté
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button type="button" variant="outline" onClick={handleClose}>
+                    Annuler
+                  </Button>
+                  <Button onClick={form.handleSubmit(onSubmit)} disabled={createPostMutation.isPending}>
+                    {createPostMutation.isPending ? (
+                      <>
+                        <i className="fas fa-spinner animate-spin mr-2"></i>
+                        Publication...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-paper-plane mr-2"></i>
+                        Publier
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
             </form>
           </Form>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600 -mx-6 -mb-6 px-6 py-4">
-          <div className="text-sm text-gray-500 flex items-center">
-            <i className="fas fa-info-circle mr-2"></i>
-            Votre post sera visible par tous les membres de la communauté
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              data-testid="button-cancel-post"
-            >
-              Annuler
-            </Button>
-            <Button
-              onClick={form.handleSubmit(onSubmit)}
-              disabled={createPostMutation.isPending}
-              data-testid="button-publish-post"
-            >
-              {createPostMutation.isPending ? (
-                <>
-                  <i className="fas fa-spinner animate-spin mr-2"></i>
-                  Publication...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-paper-plane mr-2"></i>
-                  Publier
-                </>
-              )}
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

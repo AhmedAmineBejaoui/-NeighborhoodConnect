@@ -2,6 +2,8 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request } from 'express';
 import { AuthRequest } from './auth';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 // General rate limit for all requests
 export const generalRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -12,6 +14,8 @@ export const generalRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   trustProxy: true, // trust proxy to obtain real client IP
+  // Do not rate-limit aggressively in development
+  skip: () => !isProd,
 });
 
 // Stricter rate limit for authentication endpoints
@@ -23,6 +27,8 @@ export const authRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Disable auth rate limiting in development to ease testing
+  skip: () => !isProd,
 });
 
 // Rate limit for authenticated users (higher limit)
@@ -38,6 +44,8 @@ export const authenticatedRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Disable in development
+  skip: () => !isProd,
 });
 
 // Rate limit for posting content
@@ -53,4 +61,6 @@ export const postRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Disable in development
+  skip: () => !isProd,
 });

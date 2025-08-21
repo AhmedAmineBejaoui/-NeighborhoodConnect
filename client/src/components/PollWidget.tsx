@@ -45,7 +45,7 @@ export default function PollWidget({ post, showActions = true }: PollWidgetProps
   // Get poll tally
   const { data: pollData, refetch } = useQuery<PollTally>({
     queryKey: ["/api/posts", post.id, "votes", "tally"],
-    queryFn: () => apiClient.getPollTally(post.id),
+    queryFn: async () => (await apiClient.getPollTally(post.id)) as PollTally,
     refetchInterval: hasVoted ? false : 5000, // Stop polling after voting
   });
 
@@ -84,8 +84,8 @@ export default function PollWidget({ post, showActions = true }: PollWidgetProps
   };
 
   const options = post.meta?.options || [];
-  const tally = pollData?.tally || {};
-  const totalVotes = pollData?.totalVotes || 0;
+  const tally = pollData?.tally ?? {};
+  const totalVotes = pollData?.totalVotes ?? 0;
 
   // Calculate percentages
   const getPercentage = (optionIndex: number) => {
@@ -156,7 +156,7 @@ export default function PollWidget({ post, showActions = true }: PollWidgetProps
             const percentage = getPercentage(index);
             const votes = getVoteCount(index);
             const isSelected = selectedOption === index;
-            const isWinning = totalVotes > 0 && votes === Math.max(...Object.values(tally));
+            const isWinning = totalVotes > 0 && votes === Math.max(...(Object.values(tally) as number[]));
             
             return (
               <div

@@ -136,7 +136,7 @@ export class ApiClient {
   }
 
   async getPollTally(postId: string) {
-    return this.request(`/posts/${postId}/votes/tally`);
+    return this.request<{ tally: Record<number, number>; totalVotes: number }>(`/posts/${postId}/votes/tally`);
   }
 
   // Reports
