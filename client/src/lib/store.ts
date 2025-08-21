@@ -8,7 +8,7 @@ interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, token?: string | null) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
   updateUser: (user: User) => void;
@@ -25,12 +25,12 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (user, token) =>
         set({
           user,
-          accessToken: token,
+          accessToken: token || null,
           isAuthenticated: true,
         }),
       
       logout: () => {
-        // Best-effort server-side logout to clear refresh cookie
+        // Best-effort server-side logout to clear auth cookie
         try {
           void fetch("/api/auth/logout", { method: "POST", credentials: "include" });
         } catch {}
@@ -137,19 +137,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       try {
         useAuthStore.getState().setLoading(true);
-        // Only attempt refresh for returning users to avoid 401 spam on first visits
-        const shouldAttemptRefresh = (() => {
-          try { return localStorage.getItem('hasLoggedInBefore') === '1'; } catch { return false; }
-        })();
-        if (!shouldAttemptRefresh) return;
-        // Attempt refresh using httpOnly cookie without throwing on 401
-        const res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
         if (!isMounted) return;
         if (res.ok) {
-          const result = await res.json();
-          useAuthStore.getState().setAuth(result.user, result.accessToken);
+          const user = await res.json();
+          useAuthStore.getState().setAuth(user, null);
         } else {
-          // Ensure logged out state if refresh fails
           useAuthStore.getState().logout();
         }
       } catch {

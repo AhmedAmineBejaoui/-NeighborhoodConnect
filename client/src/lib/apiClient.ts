@@ -1,5 +1,3 @@
-import { useAuthStore } from "./store";
-
 export class ApiClient {
   private baseUrl: string;
 
@@ -11,13 +9,10 @@ export class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const { accessToken } = useAuthStore.getState();
-    
     const config: RequestInit = {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
         ...options.headers,
       },
       credentials: "include",
@@ -49,14 +44,14 @@ export class ApiClient {
 
   // Auth methods
   async login(email: string, password: string) {
-    return this.request<{ user: any; accessToken: string }>("/auth/login", {
+    return this.request<{ user: any }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
   }
 
   async register(email: string, password: string, name: string) {
-    return this.request<{ user: any; accessToken: string }>("/auth/register", {
+    return this.request<{ user: any }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ email, password, name }),
     });
@@ -66,10 +61,8 @@ export class ApiClient {
     return this.request("/auth/logout", { method: "POST" });
   }
 
-  async refresh() {
-    return this.request<{ user: any; accessToken: string }>("/auth/refresh", {
-      method: "POST",
-    });
+  async me() {
+    return this.request<{ user: any }>("/auth/me");
   }
 
   // Communities
