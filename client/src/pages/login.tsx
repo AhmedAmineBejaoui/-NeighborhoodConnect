@@ -39,14 +39,16 @@ export default function Login() {
       const response = await apiRequest("POST", "/api/auth/login", data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async () => {
       try { localStorage.setItem('hasLoggedInBefore', '1'); } catch {}
-      setAuth(data.user, data.accessToken);
+      const meRes = await apiRequest("GET", "/api/auth/me");
+      const user = await meRes.json();
+      setAuth(user, null);
       toast({
         title: "Connexion réussie",
         description: "Bienvenue !",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -62,14 +64,16 @@ export default function Login() {
       const response = await apiRequest("POST", "/api/auth/register", data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async () => {
       try { localStorage.setItem('hasLoggedInBefore', '1'); } catch {}
-      setAuth(data.user, data.accessToken);
+      const meRes = await apiRequest("GET", "/api/auth/me");
+      const user = await meRes.json();
+      setAuth(user, null);
       toast({
         title: "Compte créé",
         description: "Votre compte a été créé avec succès !",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({
