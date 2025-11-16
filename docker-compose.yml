@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Service de l'application Next.js (Frontend + Backend)
+  app:
+    build: .
+    container_name: todo-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./db/custom.db
+    volumes:
+      - db_data:/app/db
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+  # Service de la base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: todo-db
+    environment:
+      - POSTGRES_DB=todoapp
+      - POSTGRES_USER=todouser
+      - POSTGRES_PASSWORD=todopassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+  # Service Nginx (Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: todo-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+# Volumes pour la persistance des données
+volumes:
+  db_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+# Réseau Docker
+networks:
+  todo-network:
+    driver: bridge

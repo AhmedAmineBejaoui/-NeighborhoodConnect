@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Service de l'application Next.js (Frontend + Backend)
+  app:
+    build: .
+    container_name: todo-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./db/custom.db
+    volumes:
+      - ./db:/app/db
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+# Réseau Docker
+networks:
+  todo-network:
+    driver: bridge
